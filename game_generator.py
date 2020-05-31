@@ -84,71 +84,7 @@ fields = read_fields_from_stdin(args.nr_fields)
 
 future_score_lists = []
 for field in Bar("Playing").iter(fields):
-    future_score_lists .append(score_future(ai_player, field,
+    future_score_lists.append(score_future(ai_player, field,
                                             args.nr_moves, args.nr_replays))
 new_scores = aggregate_future_scores(future_score_lists)
 dump_scores(new_scores, args.score_dump_path)
-  #
-
-
-
-
-"""ruleset = STANDARD_RULESET
-
-class GameOver: # Used as mathematical type
-    pass
-
-
-def rate_field_features_mlp(mlp, field, ruleset):
-    features = utils.heights(field) + utils.nr_holes(field)
-    return mlp.predict([features])[0]
-
-def rate_future(mlp, field, ruleset, nr_moves, pieces=None):
-    def rate_function(field, ruleset):
-        return rate_field_features_mlp(mlp, field, ruleset)
-
-    if pieces is None:
-        pieces = piece_stream(ruleset)
-    for nr_pieces, piece in enumerate(pieces):
-        if nr_pieces == nr_moves:
-            break
-        if not is_valid(field, piece, ruleset.start_config, ruleset):
-            return GameOver
-        config, moves = make_move_with(field, piece, ruleset, rate_function=rate_function)
-        field = place_piece(field, piece, config, ruleset)
-    return rate_field_features_mlp(mlp, field, ruleset)
-
-def create_intuition_ratings(mlp, fields, ruleset, nr_moves):
-    #ir = [(field,
-    #       rate_field_features_mlp(mlp, field, ruleset),
-    #       rate_future(mlp, field, ruleset, nr_moves)) for field in fields]
-    ir = []
-    for field in Bar("Playing").iter(fields):
-        ir.append((field,
-                   rate_field_features_mlp(mlp, field, ruleset),
-                   rate_future(mlp, field, ruleset, nr_moves)))
-    old_scores = [os for _, os, ns in ir]
-    new_scores = [ns for _, os, ns in ir]
-    worst_new_score = min(n for n in new_scores if isinstance(n, float)) # This could be problematic
-    sum_new_scores = 0
-    for ns in new_scores:
-        if not isinstance(ns, float):
-            ns = worst_new_score
-        sum_new_scores += ns
-    normalization_factor = sum(old_scores) / sum_new_scores
-    return [(field, (new_score * normalization_factor if isinstance(new_score, float) else worst_new_score))
-             for field, _, new_score in ir]
-
-
-mlp_path = "mlp_feature_intuition_net1"
-mlp = pickle.load(open(mlp_path, "rb"))
-with open("headr", "r") as infile:
-    flat_fields = []
-    for line in infile:
-        flat_fields.append([int(i) for i in line.split()[:-1]])
-    fields = [np.array(field_as_array, dtype=bool).reshape(10,22) for
-              field_as_array in flat_fields]
-    print("Read everything")
-    for field, rating in create_intuition_ratings(mlp, fields, ruleset, 5):
-        utils.dump_field_rating(field, rating, "rating_intuition_n5_1")
-"""

@@ -55,7 +55,6 @@ def get_piece_tile_co(piece, config, ruleset=STANDARD_RULESET):
     rotation = ruleset.rotations[piece][config.rotation]
     return [(config.x + x_offset, config.y + y_offset) for x_offset, y_offset in rotation]
 
-
 def is_valid(field, piece, config, ruleset=STANDARD_RULESET):
     """Return if config is valid for board with active piece."""
     rotation = ruleset.rotations[piece][config.rotation]

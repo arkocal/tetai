@@ -24,8 +24,8 @@ if args.mlp_start_path:
     print("Starting from old net")
 else:
     print("Creating new net")
-#    mlp = MLPRegressor(hidden_layer_sizes=(200, 80, 80), max_iter=20, verbose=True)
-    mlp = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=20, verbose=True)
+    mlp = MLPRegressor(hidden_layer_sizes=(200, 80, 80), max_iter=20, verbose=True)
+#    mlp = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=20, verbose=True)
 
 X = []
 y = []

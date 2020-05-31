@@ -4,16 +4,19 @@ import numpy as np
 
 from rules import STANDARD_RULESET, ROTATIONS, place_piece, is_valid, Config, ControlAction
 
+# IO
 def serialize_field(field):
     return "".join([str(i) for i in np.array(field, dtype=int).ravel()])
 
+# IO
 def deserialize_field(serialized_field):
     return np.array([i=="1" for i in serialized_field], dtype=bool).reshape(10, 22)
 
+# Mechanics
 def piece_stream(ruleset=STANDARD_RULESET):
     while True:
         yield random.choice(ruleset.pieces)
-
+# Analysis
 def list_possible_end_configs(field, piece, ruleset=STANDARD_RULESET, initial_config=None):
     if initial_config is None:
         initial_config = ruleset.start_config
@@ -34,8 +37,7 @@ def list_possible_end_configs(field, piece, ruleset=STANDARD_RULESET, initial_co
         if not is_valid(field, piece, down[0]):
             end_configs.append((config, path))
     return end_configs
-
-
+# Analysis
 def heights(field):
     width = len(field)
     height = len(field[0])
@@ -45,7 +47,7 @@ def heights(field):
             if field[x][y]:
                 heights[x] = y+1
     return heights
-
+# Analysis
 def nr_holes(field):
     """Return 6 (selected arbitrary) list of holes,
     each element describing the height."""
@@ -63,14 +65,14 @@ def nr_holes(field):
             else:
                 depth += 1
     return nr_holes
-
+# AI
 def feature_vector(field):
     return heights(field) + nr_holes(field)
-
+# AI
 def score_field_with_features(model, field):
     features = heights(field) + nr_holes(field)
     return(model.predict([features])[0])
-
+# AI
 def make_move_with(field, piece, ruleset=STANDARD_RULESET, initial_config=None,
                    rate_function=None):
     def rate_conf(conf_and_movement):
@@ -79,7 +81,7 @@ def make_move_with(field, piece, ruleset=STANDARD_RULESET, initial_config=None,
     possible_configs = list_possible_end_configs(field, piece, ruleset, initial_config)
     next_conf = max(possible_configs, key=rate_conf)
     return next_conf
-
+# AI
 def make_move_with_model(model, field, piece, initial_config=None):
     def rate_function(field, ruleset=None):
         return score_field_with_features(model, field)
