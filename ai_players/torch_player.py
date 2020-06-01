@@ -33,12 +33,30 @@ def make_feature_vec(field):
 
 class TorchAIPlayer(AIPlayer):
 
-    def __init__(self, mechanics, model_state_dict_path):
+    def __init__(self, mechanics, model_state_dict_path=None):
         super(TorchAIPlayer, self).__init__(mechanics)
         self.model = DeepBoy(num_features=16)
-        self.model.load_state_dict(torch.load(model_state_dict_path))
+        if model_state_dict_path is not None:
+            self.model.load_state_dict(torch.load(model_state_dict_path))
 
     def score_field(self, field):
         with torch.no_grad():
             model_score = self.model(make_feature_vec(field))
             return model_score.item()
+
+    def train(self, training_data):
+        loss_function = nn.MSELoss()
+        optimizer = optim.Adam(self.model.parameters(), lr=0.001)
+        losses = []
+        self.model.train()
+        X = [make_feature_vec(d[0]) for d in training_data]
+        y = [torch.tensor([float(d[1])], dtype=torch.float) for d in training_data]
+        for feature_vec, target_score in zip(X, y):
+            optimizer.zero_grad()
+            model_score = self.model(feature_vec)
+            loss = loss_function(model_score, target_score)
+            loss.backward()
+            optimizer.step()
+
+    def dump(self, path):
+        torch.save(self.model.state_dict(), path)

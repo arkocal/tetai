@@ -1,51 +1,44 @@
 import argparse
-import pickle
+import random
 
-from sklearn.neural_network import MLPRegressor
-from sklearn.utils.random import sample_without_replacement
+from mechanics import Mechanics
+import utils
 
-#from progress.bar import Bar
+parser = argparse.ArgumentParser(description='Learn from dumped games')
+parser.add_argument('--ai', dest='ai', choices=["sklearn_mlp", "torch"],
+                    required=True,
+                    help='AI player that should learn')
+parser.add_argument('--ai-data-in', dest='ai_data_in',
+                    help='Load pre-trained model parameters, optional')
+parser.add_argument('--ai-data-out', dest='ai_data_out', required=True,
+                    help='Path to dump parameters after training.')
+parser.add_argument('--training-data', dest='training_data', required=True)
+parser.add_argument('--epochs', dest='epochs', type=int, default=1,
+                    help="Number of iterations.")
+parser.add_argument('--batch-size', dest='batch_size', default=-1, type=int,
+                    help="Batch size for each epoch, -1 uses all dataset.")
+# parser.add_argument('--shuffle-training-data', dest="shuffle_training_data", default=True)
 
-from common import deserialize_field, feature_vector
-#from rules import RuleSet, place_piece, Piece, ROTATIONS, Config, STANDARD_RULESET
-#import utils
-
-
-parser = argparse.ArgumentParser(description='Automatically learn tetris')
-
-parser.add_argument('--start_from', dest='mlp_start_path')
-parser.add_argument('--dump', dest='mlp_dump_path', required=True)
-parser.add_argument('--scores', dest='score_path', required=True)
-parser.add_argument('--niter', dest='niter', type=int)
 args = parser.parse_args()
 
-if args.mlp_start_path:
-    mlp = pickle.load(open(args.mlp_start_path, "rb"))
-    print("Starting from old net")
-else:
-    print("Creating new net")
-    mlp = MLPRegressor(hidden_layer_sizes=(200, 80, 80), max_iter=20, verbose=True)
-#    mlp = MLPRegressor(hidden_layer_sizes=(50, 50, 50), max_iter=20, verbose=True)
+tetris = Mechanics()
+ai_player = utils.get_ai_player(args.ai, tetris, args.ai_data_in)
 
-X = []
-y = []
+print("Created/loaded model")
+with open(args.training_data, "r") as training_data_file:
+    training_data = [(utils.deserialize_field(line.split()[0]),
+                      float(line.split()[1])) for line in training_data_file]
+print("Loaded data")
 
-with open(args.score_path, "r") as infile:
-    for line in infile:
-        serialized_field, rating = line.split()
-        field = deserialize_field(serialized_field)
-        features = feature_vector(field)
-        X.append(features)
-        y.append(float(rating))
+batch_size = args.batch_size
+if batch_size == -1:
+    batch_size = len(training_data)
 
-    print("Starting fit")
-    if args.niter:
-        for _ in range(args.niter):
-            mlp.partial_fit(X, y)
-    else:
-         mlp.fit(X, y)
-
-with open(args.mlp_dump_path, "wb") as ofile:
-    pickle.dump(mlp, ofile)
-
-# 394 -> deep boy 1
+# TODO bar
+for epoch in range(args.epochs):
+    print(epoch)
+    batch = random.sample(training_data, batch_size)
+    ai_player.train(batch)
+print("Done training")
+ai_player.dump(args.ai_data_out)
+print("Dumped to", args.ai_data_out)

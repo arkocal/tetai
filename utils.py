@@ -1,6 +1,8 @@
 import itertools
 import os
 
+from ai_players import RandomAIPlayer, SklearnMLPAIPlayer, TorchAIPlayer
+
 def print_field(field, active_cos=None, clear=False):
     if clear:
         os.system("clear")
@@ -22,8 +24,18 @@ def print_field(field, active_cos=None, clear=False):
 def serialize_field(field):
     return "".join("1" if i else "0" for i in itertools.chain.from_iterable(field))
 
-def deserialize_field(serialized_field, field_height=10):
+def deserialize_field(serialized_field, field_height=22):
     field = []
     for i in range(0, len(serialized_field), field_height):
         serialized_column = serialized_field[i:i+field_height]
         field.append([j=="1" for j in serialized_column])
+    return field
+
+def get_ai_player(name, mechanics, data=None):
+    if name == "random":
+        ai_player = RandomAIPlayer(mechanics)
+    elif name == "sklearn_mlp":
+        ai_player = SklearnMLPAIPlayer(mechanics, data)
+    elif name == "torch":
+        ai_player = TorchAIPlayer(mechanics, data)
+    return ai_player
