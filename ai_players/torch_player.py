@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from progress.bar import Bar
 
 from ai_players.base import AIPlayer
 import ai_players.features as features
@@ -51,7 +52,7 @@ class TorchAIPlayer(AIPlayer):
         self.model.train()
         X = [make_feature_vec(d[0]) for d in training_data]
         y = [torch.tensor([float(d[1])], dtype=torch.float) for d in training_data]
-        for feature_vec, target_score in zip(X, y):
+        for feature_vec, target_score in Bar("Training batch", max=len(X)).iter(zip(X, y)):
             optimizer.zero_grad()
             model_score = self.model(feature_vec)
             loss = loss_function(model_score, target_score)

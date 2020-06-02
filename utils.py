@@ -39,3 +39,15 @@ def get_ai_player(name, mechanics, data=None):
     elif name == "torch":
         ai_player = TorchAIPlayer(mechanics, data)
     return ai_player
+
+dump_cache = []
+CACHE_SIZE = 500
+def dump_field(field, path, score=None):
+    global dump_cache
+    score_str = "" if score is None else str(score)
+    dump_cache.append(serialize_field(field) + " " + score_str)
+    if len(dump_cache) >= CACHE_SIZE:
+        with open(path, "a") as outfile:
+            for line in dump_cache:
+                outfile.write(line + "\n")
+        dump_cache = []

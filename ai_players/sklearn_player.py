@@ -22,3 +22,12 @@ class SklearnMLPAIPlayer(AIPlayer):
 
     def score_field(self, field):
         return self.mlp.predict([feature_vector(field)])[0]
+
+    def train(self, training_data):
+        X = [feature_vector(d[0]) for d in training_data]
+        y = [float(d[1]) for d in training_data]
+        self.mlp.partial_fit(X, y)
+
+    def dump(self, path):
+        with open(path, "wb") as outfile:
+            pickle.dump(self.mlp, outfile)
